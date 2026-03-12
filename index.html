@@ -2,44 +2,99 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ozon定价计算器</title>
+
 <style>
+
 body{
-    font-family: Arial;
+    font-family: Arial, Helvetica, sans-serif;
     max-width:600px;
     margin:auto;
     padding:20px;
+    font-size:18px;
+    background:#fafafa;
 }
+
+h2{
+    text-align:center;
+}
+
+h3{
+    margin-top:30px;
+}
+
 input,select{
     width:100%;
-    padding:8px;
-    margin:5px 0 10px 0;
+    padding:12px;
+    margin:6px 0 12px 0;
+    font-size:18px;
+    border:1px solid #ccc;
+    border-radius:6px;
 }
+
 button{
     width:100%;
-    padding:10px;
+    padding:14px;
     background:#2b7cff;
     color:white;
     border:none;
+    border-radius:6px;
+    font-size:18px;
     cursor:pointer;
 }
-.result{
-    background:#f2f2f2;
-    padding:10px;
-    margin-top:10px;
+
+button:hover{
+    background:#1f63d6;
 }
+
+.result{
+    background:white;
+    padding:15px;
+    margin-top:15px;
+    border-radius:6px;
+    border:1px solid #ddd;
+}
+
 .table{
     width:100%;
     border-collapse: collapse;
     margin-top:10px;
 }
+
 .table th,.table td{
     border:1px solid #ccc;
-    padding:5px;
+    padding:6px;
     text-align:center;
 }
+
+.table th{
+    background:#f0f0f0;
+}
+
+/* 手机优化 */
+
+@media (max-width:600px){
+
+body{
+    font-size:20px;
+}
+
+input,select{
+    font-size:20px;
+    padding:14px;
+}
+
+button{
+    font-size:20px;
+    padding:16px;
+}
+
+}
+
 </style>
 </head>
+
 <body>
 
 <h2>Ozon定价计算器</h2>
@@ -52,16 +107,16 @@ button{
 <option value="FBP">FBP</option>
 </select>
 
-产品成本(元)
+产品成本 (元)
 <input id="cost">
 
-产品重量(g)
+产品重量 (g)
 <input id="weight">
 
-汇率
+汇率 (1元=多少卢布)
 <input id="rate">
 
-目标利润率 (例如0.2表示20%)
+目标利润率 (例如0.3表示30%)
 <input id="targetProfitRate">
 
 <button onclick="calcPrice()">计算卖价</button>
@@ -78,16 +133,16 @@ button{
 <option value="FBP">FBP</option>
 </select>
 
-产品成本(元)
+产品成本 (元)
 <input id="cost2">
 
-产品重量(g)
+产品重量 (g)
 <input id="weight2">
 
 汇率
 <input id="rate2">
 
-卖价(元)
+卖价 (元)
 <input id="price2">
 
 <button onclick="calcProfit()">计算利润</button>
@@ -95,113 +150,206 @@ button{
 <div class="result" id="profitResult"></div>
 
 <script>
-// 自动识别物流等级
+
+// 物流成本 + 等级识别
 function getShippingCost(weight,priceRUB){
+
     if(weight<500 && priceRUB<1500) return {cost:3+0.035*weight,level:"Extra Small"};
+
     if(weight>=500 && priceRUB<1500) return {cost:23+0.025*weight,level:"Budget"};
+
     if(weight<2000 && priceRUB>=1500 && priceRUB<7000) return {cost:16+0.035*weight,level:"Small"};
+
     if(weight>=2000 && priceRUB>=1500 && priceRUB<7000) return {cost:36+0.025*weight,level:"Big"};
+
     if(weight<5000 && priceRUB>=7000 && priceRUB<250000) return {cost:22+0.045*weight,level:"Premium Small"};
+
     if(weight>=5000 && priceRUB>=7000 && priceRUB<250000) return {cost:62+0.033*weight,level:"Premium Big"};
+
     return {cost:0,level:"未识别"};
 }
 
+
 // 平台佣金
 function getPlatformCommission(price,mode,priceRUB){
+
     if(priceRUB<1500){
+
         if(mode=="rFBS") return price*0.12;
+
         if(mode=="FBP") return price*0.11;
+
     }
+
     return price*0.18;
+
 }
+
 
 // 物流佣金
 function getLogisticsCommission(price,rate){
-    let rub = price*rate*0.02;
+
+    let rub=price*rate*0.02;
+
     if(rub<15) rub=15;
+
     if(rub>200) rub=200;
+
     return rub/rate;
+
 }
 
-// 利润核心计算
+
+// 核心利润计算
 function calcProfitCore(price,cost,weight,rate,mode){
-    let priceRUB = price*rate;
-    let shippingObj = getShippingCost(weight,priceRUB);
-    let shipping = shippingObj.cost;
-    let shippingLevel = shippingObj.level;
-    let platform = getPlatformCommission(price,mode,priceRUB);
-    let logistics = getLogisticsCommission(price,rate);
-    let other = price*0.02;
-    let profit = price - cost - shipping - platform - logistics - other;
-    return {profit:profit,shippingLevel:shippingLevel,shipping:shipping,platform:platform,logistics:logistics,other:other};
+
+    let priceRUB=price*rate;
+
+    let shippingObj=getShippingCost(weight,priceRUB);
+
+    let shipping=shippingObj.cost;
+
+    let level=shippingObj.level;
+
+    let platform=getPlatformCommission(price,mode,priceRUB);
+
+    let logistics=getLogisticsCommission(price,rate);
+
+    let other=price*0.02;
+
+    let profit=price-cost-shipping-platform-logistics-other;
+
+    return {profit,shipping,platform,logistics,other,level};
+
 }
+
 
 // 计算卖价
 function calcPrice(){
+
     let mode=document.getElementById("mode").value;
+
     let cost=parseFloat(document.getElementById("cost").value);
+
     let weight=parseFloat(document.getElementById("weight").value);
+
     let rate=parseFloat(document.getElementById("rate").value);
+
     let target=parseFloat(document.getElementById("targetProfitRate").value);
 
+
     let price=cost;
+
     for(let i=0;i<10000;i++){
-        let res=calcProfitCore(price,cost,weight,rate,mode);
-        let profitRate=res.profit/price;
-        if(Math.abs(profitRate-target)<0.0001) break;
-        price=price*(1+(target-profitRate));
+
+        let r=calcProfitCore(price,cost,weight,rate,mode);
+
+        let pr=r.profit/price;
+
+        if(Math.abs(pr-target)<0.0001) break;
+
+        price=price*(1+(target-pr));
+
     }
 
-    let res=calcProfitCore(price,cost,weight,rate,mode);
 
-    // 成本结构
-    let costStruct=`<b>成本结构：</b><br>
-    产品成本：${cost.toFixed(2)} 元<br>
-    物流成本(${res.shippingLevel})：${res.shipping.toFixed(2)} 元<br>
-    平台佣金：${res.platform.toFixed(2)} 元<br>
-    物流佣金：${res.logistics.toFixed(2)} 元<br>
-    其他成本：${res.other.toFixed(2)} 元`;
+    let r=calcProfitCore(price,cost,weight,rate,mode);
 
-    // 利润参考表
-    let table=`<b>利润参考表：</b><br>
-    <table class="table">
-    <tr><th>卖价(元)</th><th>利润(元)</th><th>利润率(%)</th></tr>`;
+
+    let result="";
+
+    result+="建议卖价："+price.toFixed(2)+" 元<br>";
+
+    result+="预计利润："+r.profit.toFixed(2)+" 元<br>";
+
+    result+="物流等级："+r.level+"<br><br>";
+
+    result+="<b>成本结构</b><br>";
+
+    result+="产品成本："+cost.toFixed(2)+" 元<br>";
+
+    result+="物流成本："+r.shipping.toFixed(2)+" 元<br>";
+
+    result+="平台佣金："+r.platform.toFixed(2)+" 元<br>";
+
+    result+="物流佣金："+r.logistics.toFixed(2)+" 元<br>";
+
+    result+="其他成本："+r.other.toFixed(2)+" 元<br><br>";
+
+
+    result+="<b>利润参考表</b>";
+
+    result+="<table class='table'>";
+
+    result+="<tr><th>卖价</th><th>利润</th><th>利润率</th></tr>";
+
     for(let p=price-40;p<=price+40;p+=10){
-        let r=calcProfitCore(p,cost,weight,rate,mode);
-        table+=`<tr><td>${p.toFixed(2)}</td><td>${r.profit.toFixed(2)}</td><td>${(r.profit/p*100).toFixed(2)}</td></tr>`;
-    }
-    table+="</table>";
 
-    document.getElementById("priceResult").innerHTML=
-        `建议卖价：${price.toFixed(2)} 元<br>`+
-        `预计利润：${res.profit.toFixed(2)} 元<br><br>`+
-        costStruct+"<br><br>"+table;
+        let t=calcProfitCore(p,cost,weight,rate,mode);
+
+        result+="<tr>";
+
+        result+="<td>"+p.toFixed(2)+"</td>";
+
+        result+="<td>"+t.profit.toFixed(2)+"</td>";
+
+        result+="<td>"+(t.profit/p*100).toFixed(2)+"%</td>";
+
+        result+="</tr>";
+
+    }
+
+    result+="</table>";
+
+
+    document.getElementById("priceResult").innerHTML=result;
+
 }
+
 
 // 计算利润率
 function calcProfit(){
+
     let mode=document.getElementById("mode2").value;
+
     let cost=parseFloat(document.getElementById("cost2").value);
+
     let weight=parseFloat(document.getElementById("weight2").value);
+
     let rate=parseFloat(document.getElementById("rate2").value);
+
     let price=parseFloat(document.getElementById("price2").value);
 
-    let res=calcProfitCore(price,cost,weight,rate,mode);
-    let profitRate=res.profit/price;
 
-    // 成本结构
-    let costStruct=`<b>成本结构：</b><br>
-    产品成本：${cost.toFixed(2)} 元<br>
-    物流成本(${res.shippingLevel})：${res.shipping.toFixed(2)} 元<br>
-    平台佣金：${res.platform.toFixed(2)} 元<br>
-    物流佣金：${res.logistics.toFixed(2)} 元<br>
-    其他成本：${res.other.toFixed(2)} 元`;
+    let r=calcProfitCore(price,cost,weight,rate,mode);
 
-    document.getElementById("profitResult").innerHTML=
-        `利润：${res.profit.toFixed(2)} 元<br>`+
-        `利润率：${(profitRate*100).toFixed(2)}%<br><br>`+
-        costStruct;
+    let pr=r.profit/price;
+
+
+    let result="";
+
+    result+="利润："+r.profit.toFixed(2)+" 元<br>";
+
+    result+="利润率："+(pr*100).toFixed(2)+"%<br>";
+
+    result+="物流等级："+r.level+"<br><br>";
+
+    result+="<b>成本结构</b><br>";
+
+    result+="产品成本："+cost.toFixed(2)+" 元<br>";
+
+    result+="物流成本："+r.shipping.toFixed(2)+" 元<br>";
+
+    result+="平台佣金："+r.platform.toFixed(2)+" 元<br>";
+
+    result+="物流佣金："+r.logistics.toFixed(2)+" 元<br>";
+
+    result+="其他成本："+r.other.toFixed(2)+" 元<br>";
+
+    document.getElementById("profitResult").innerHTML=result;
+
 }
+
 </script>
 
 </body>
