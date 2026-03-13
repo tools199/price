@@ -8,94 +8,92 @@
 <style>
 
 body{
-    font-family: Arial, Helvetica, sans-serif;
-    max-width:600px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+    background:#f2f3f5;
+    margin:0;
+    padding:15px;
+}
+
+.card{
+    max-width:420px;
     margin:auto;
+    background:white;
     padding:20px;
-    font-size:18px;
-    background:#fafafa;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
 }
 
 h2{
     text-align:center;
+    margin-top:5px;
 }
 
 h3{
-    margin-top:30px;
+    margin-top:25px;
 }
+
+/* 输入框 */
 
 input,select{
     width:100%;
+    box-sizing:border-box;
     padding:12px;
-    margin:6px 0 12px 0;
-    font-size:18px;
-    border:1px solid #ccc;
-    border-radius:6px;
+    margin-top:6px;
+    margin-bottom:14px;
+    font-size:16px;
+    border:1px solid #ddd;
+    border-radius:8px;
 }
+
+/* 按钮 */
 
 button{
     width:100%;
     padding:14px;
+    font-size:17px;
     background:#2b7cff;
     color:white;
     border:none;
-    border-radius:6px;
-    font-size:18px;
+    border-radius:8px;
     cursor:pointer;
 }
 
-button:hover{
+button:active{
     background:#1f63d6;
 }
 
 .result{
-    background:white;
+    background:#fafafa;
     padding:15px;
+    border-radius:8px;
     margin-top:15px;
-    border-radius:6px;
-    border:1px solid #ddd;
+    border:1px solid #eee;
 }
+
+/* 表格 */
 
 .table{
     width:100%;
-    border-collapse: collapse;
+    border-collapse:collapse;
     margin-top:10px;
 }
 
 .table th,.table td{
-    border:1px solid #ccc;
+    border:1px solid #ddd;
     padding:6px;
     text-align:center;
 }
 
 .table th{
-    background:#f0f0f0;
-}
-
-/* 手机优化 */
-
-@media (max-width:600px){
-
-body{
-    font-size:20px;
-}
-
-input,select{
-    font-size:20px;
-    padding:14px;
-}
-
-button{
-    font-size:20px;
-    padding:16px;
-}
-
+    background:#f5f5f5;
 }
 
 </style>
 </head>
 
 <body>
+
+<div class="card">
 
 <h2>Ozon定价计算器</h2>
 
@@ -149,9 +147,44 @@ button{
 
 <div class="result" id="profitResult"></div>
 
+</div>
+
 <script>
 
-// 物流成本 + 等级识别
+/* 自动读取保存的数据 */
+
+window.onload=function(){
+
+    let rate=localStorage.getItem("rate");
+    let profit=localStorage.getItem("profit");
+
+    if(rate){
+        document.getElementById("rate").value=rate;
+        document.getElementById("rate2").value=rate;
+    }
+
+    if(profit){
+        document.getElementById("targetProfitRate").value=profit;
+    }
+
+}
+
+
+/* 保存输入 */
+
+function saveInputs(){
+
+    let rate=document.getElementById("rate").value;
+    let profit=document.getElementById("targetProfitRate").value;
+
+    localStorage.setItem("rate",rate);
+    localStorage.setItem("profit",profit);
+
+}
+
+
+/* 物流成本 */
+
 function getShippingCost(weight,priceRUB){
 
     if(weight<500 && priceRUB<1500) return {cost:3+0.035*weight,level:"Extra Small"};
@@ -167,10 +200,12 @@ function getShippingCost(weight,priceRUB){
     if(weight>=5000 && priceRUB>=7000 && priceRUB<250000) return {cost:62+0.033*weight,level:"Premium Big"};
 
     return {cost:0,level:"未识别"};
+
 }
 
 
-// 平台佣金
+/* 平台佣金 */
+
 function getPlatformCommission(price,mode,priceRUB){
 
     if(priceRUB<1500){
@@ -186,7 +221,8 @@ function getPlatformCommission(price,mode,priceRUB){
 }
 
 
-// 物流佣金
+/* 物流佣金 */
+
 function getLogisticsCommission(price,rate){
 
     let rub=price*rate*0.02;
@@ -200,7 +236,8 @@ function getLogisticsCommission(price,rate){
 }
 
 
-// 核心利润计算
+/* 核心利润 */
+
 function calcProfitCore(price,cost,weight,rate,mode){
 
     let priceRUB=price*rate;
@@ -219,13 +256,16 @@ function calcProfitCore(price,cost,weight,rate,mode){
 
     let profit=price-cost-shipping-platform-logistics-other;
 
-    return {profit,shipping,platform,logistics,other,level};
+    return {profit,shipping,platform,logistics,other,level,priceRUB};
 
 }
 
 
-// 计算卖价
+/* 计算卖价 */
+
 function calcPrice(){
+
+    saveInputs();
 
     let mode=document.getElementById("mode").value;
 
@@ -236,7 +276,6 @@ function calcPrice(){
     let rate=parseFloat(document.getElementById("rate").value);
 
     let target=parseFloat(document.getElementById("targetProfitRate").value);
-
 
     let price=cost;
 
@@ -252,13 +291,13 @@ function calcPrice(){
 
     }
 
-
     let r=calcProfitCore(price,cost,weight,rate,mode);
-
 
     let result="";
 
-    result+="建议卖价："+price.toFixed(2)+" 元<br>";
+    result+="建议卖价："+price.toFixed(2)+" 元";
+
+    result+=" (约 "+r.priceRUB.toFixed(0)+" 卢布)<br>";
 
     result+="预计利润："+r.profit.toFixed(2)+" 元<br>";
 
@@ -275,7 +314,6 @@ function calcPrice(){
     result+="物流佣金："+r.logistics.toFixed(2)+" 元<br>";
 
     result+="其他成本："+r.other.toFixed(2)+" 元<br><br>";
-
 
     result+="<b>利润参考表</b>";
 
@@ -301,13 +339,13 @@ function calcPrice(){
 
     result+="</table>";
 
-
     document.getElementById("priceResult").innerHTML=result;
 
 }
 
 
-// 计算利润率
+/* 计算利润 */
+
 function calcProfit(){
 
     let mode=document.getElementById("mode2").value;
@@ -320,11 +358,9 @@ function calcProfit(){
 
     let price=parseFloat(document.getElementById("price2").value);
 
-
     let r=calcProfitCore(price,cost,weight,rate,mode);
 
     let pr=r.profit/price;
-
 
     let result="";
 
@@ -333,8 +369,6 @@ function calcProfit(){
     result+="利润率："+(pr*100).toFixed(2)+"%<br>";
 
     result+="物流等级："+r.level+"<br><br>";
-
-    result+="<b>成本结构</b><br>";
 
     result+="产品成本："+cost.toFixed(2)+" 元<br>";
 
