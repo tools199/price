@@ -206,17 +206,21 @@ function getShippingCost(weight,priceRUB){
 
 /* 平台佣金 */
 
-function getPlatformCommission(price,mode,priceRUB){
+function getPlatformCommission(price, mode, priceRUB){
 
-    if(priceRUB<1500){
+    if(priceRUB < 1500){
 
-        if(mode=="rFBS") return price*0.12;
+        if(mode == "rFBS") return price * 0.12;
 
-        if(mode=="FBP") return price*0.11;
+        if(mode == "FBP") return price * 0.11;
+
+    } else {
+
+        if(mode == "rFBS") return price * 0.18;
+
+        if(mode == "FBP") return price * 0.17;
 
     }
-
-    return price*0.18;
 
 }
 
